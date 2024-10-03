@@ -8,23 +8,66 @@
 import SwiftUI
 import SwiftData
 
+enum  FilterOptions: Identifiable, CaseIterable {
+    case inComplete
+    case complete
+    var id: FilterOptions { self }
+    
+    var title: String {
+        switch self {
+        case .inComplete:
+            "Incompleted"
+        case .complete:
+            "completed"
+        }
+    }
+}
+
 struct ContentView: View {
     // MARK: - Properties
     @Environment(\.modelContext) private var context
     @State private var title: String = ""
     @Query private var todoItems: [TodoItem] = []
-    
+    @State private var selectedFilter: FilterOptions = .inComplete
+    @FocusState private var isfocused: Bool
+
+    var filteredItems: [TodoItem] {
+        switch selectedFilter {
+        case .inComplete:
+            return todoItems.filter { $0.iscompleted == false }
+        case .complete:
+            return todoItems.filter { $0.iscompleted == true }
+        }
+    }
     // MARK: - Body
     var body: some View {
         VStack {
             TextField("enter title", text: $title)
                 .textFieldStyle(.roundedBorder)
+                .focused($isfocused)
                 .onSubmit {
                     saveTodoItem()
                 }
+                .onAppear(perform: {
+                    isfocused = true
+                })
             
-            List(todoItems) {todoItem in
-                Text(todoItem.title)
+            Picker("SelectfilterOptions", selection: $selectedFilter) {
+                ForEach(FilterOptions.allCases) { option in
+                    Text(option.title)
+                        .tag(option)
+                }
+            }.pickerStyle(.segmented)
+            
+            List(filteredItems) {todoItem in
+                HStack {
+                    Image(systemName: todoItem.iscompleted ? "checkmark.square" : "square")
+                        .onTapGesture {
+                            todoItem.iscompleted.toggle()
+                        }
+                    Text(todoItem.title)
+            
+                }
             }
             
             Spacer()
@@ -33,6 +76,7 @@ struct ContentView: View {
     }
     
     // MARK: - Functions
+    
     private func saveTodoItem() {
         let todoItem = TodoItem(title: title)
         //save item
@@ -40,10 +84,13 @@ struct ContentView: View {
         
         //clean textfield
         title = ""
+        
+        //focused to textfield
+        isfocused = true
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: TodoItem.self, inMemory: true)
+        .modelContainer(PreviewDataController.container)
 }
