@@ -30,6 +30,7 @@ struct ContentView: View {
     @Query private var todoItems: [TodoItem] = []
     @State private var selectedFilter: FilterOptions = .inComplete
     @FocusState private var isfocused: Bool
+    @State private var selectedTodoItem: TodoItem?
 
     var filteredItems: [TodoItem] {
         switch selectedFilter {
@@ -59,19 +60,33 @@ struct ContentView: View {
                 }
             }.pickerStyle(.segmented)
             
-            List(filteredItems) {todoItem in
-                HStack {
-                    Image(systemName: todoItem.iscompleted ? "checkmark.square" : "square")
-                        .onTapGesture {
-                            todoItem.iscompleted.toggle()
-                        }
-                    Text(todoItem.title)
-            
+            List {
+                ForEach(filteredItems) {todoItem in
+                    HStack {
+                        Image(systemName: todoItem.iscompleted ? "checkmark.square" : "square")
+                            .onTapGesture {
+                                todoItem.iscompleted.toggle()
+                            }
+                        Text(todoItem.title)
+                        
+                        Spacer()
+                        
+                        Image(systemName: "info.circle")
+                            .onTapGesture {
+                                selectedTodoItem = todoItem
+                            }
+                    }
                 }
+                .onDelete(perform: { indexSet in
+                    delete(indexSet)
+                })
             }
             
             Spacer()
         }//: vStack
+        .sheet(item: $selectedTodoItem, content: { todoItem in
+            EditTodoItemView(todoItem: todoItem)
+        })
         .padding()
     }
     
@@ -87,6 +102,15 @@ struct ContentView: View {
         
         //focused to textfield
         isfocused = true
+    }
+    
+    func delete(_ indexSet: IndexSet) {
+        print("indexset: \(indexSet)")
+        indexSet.forEach { index in
+            let todoItem = filteredItems[index]
+            context.delete(todoItem)
+            print("index: \(index)")
+        }
     }
 }
 
