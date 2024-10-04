@@ -30,8 +30,7 @@ struct ContentView: View {
     @Query private var todoItems: [TodoItem] = []
     @State private var selectedFilter: FilterOptions = .inComplete
     @FocusState private var isfocused: Bool
-    @State private var selectedTodoItem: TodoItem?
-
+    
     var filteredItems: [TodoItem] {
         switch selectedFilter {
         case .inComplete:
@@ -61,20 +60,18 @@ struct ContentView: View {
             }.pickerStyle(.segmented)
             
             List {
-                ForEach(filteredItems) {todoItem in
+                ForEach(filteredItems) { todoItem in
+                    
+                    @Bindable var todoItem = todoItem
+                    
                     HStack {
                         Image(systemName: todoItem.iscompleted ? "checkmark.square" : "square")
                             .onTapGesture {
                                 todoItem.iscompleted.toggle()
                             }
-                        Text(todoItem.title)
-                        
-                        Spacer()
-                        
-                        Image(systemName: "info.circle")
-                            .onTapGesture {
-                                selectedTodoItem = todoItem
-                            }
+                        TextField("Todo Title", text: $todoItem.title)
+                            .textFieldStyle(.roundedBorder)
+                            .disabled(todoItem.iscompleted ? true : false)
                     }
                 }
                 .onDelete(perform: { indexSet in
@@ -84,9 +81,6 @@ struct ContentView: View {
             
             Spacer()
         }//: vStack
-        .sheet(item: $selectedTodoItem, content: { todoItem in
-            EditTodoItemView(todoItem: todoItem)
-        })
         .padding()
     }
     
