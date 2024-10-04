@@ -61,17 +61,21 @@ struct ContentView: View {
             
             List {
                 ForEach(filteredItems) { todoItem in
-                    
                     @Bindable var todoItem = todoItem
                     
-                    HStack {
-                        Image(systemName: todoItem.iscompleted ? "checkmark.square" : "square")
-                            .onTapGesture {
-                                todoItem.iscompleted.toggle()
-                            }
-                        TextField("Todo Title", text: $todoItem.title)
-                            .textFieldStyle(.roundedBorder)
-                            .disabled(todoItem.iscompleted ? true : false)
+                    NavigationLink(destination: 
+                                    TodoItemDetailView(todoItem: todoItem)
+                    ) {
+                        HStack {
+                            Image(systemName: todoItem.iscompleted ? "checkmark.square" : "square")
+                                .onTapGesture {
+                                    todoItem.iscompleted.toggle()
+                                }
+                            TextField("Todo Title", text: $todoItem.title)
+                                .textFieldStyle(.roundedBorder)
+                                .disabled(todoItem.iscompleted ? true : false)
+                                .fixedSize()
+                        }
                     }
                 }
                 .onDelete(perform: { indexSet in
@@ -109,6 +113,7 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
-        .modelContainer(PreviewDataController.container)
+    NavigationStack {
+        ContentView()
+    }.modelContainer(PreviewDataController.container)
 }
